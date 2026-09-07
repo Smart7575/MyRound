@@ -1,0 +1,6 @@
+{
+  "name": "MyRound",
+  "description": "Snelle drankjesteller voor rondjes met groepen. Eén tik per drankje, direct overzicht, aanpasbare dranktegels en geschiedenis.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
