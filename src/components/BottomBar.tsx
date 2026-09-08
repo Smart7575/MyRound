@@ -19,8 +19,8 @@ export const BottomBar: React.FC<BottomBarProps> = ({
   const t = translations[language];
 
   return (
-    <div className="shrink-0 w-full p-2 sm:p-4 bg-slate-50/95 dark:bg-slate-950/95 backdrop-blur-md border-t border-slate-200/80 dark:border-slate-800/80 z-20">
-      <div className="max-w-6xl mx-auto flex items-center gap-2 sm:gap-4 h-13 sm:h-20">
+    <div className="shrink-0 w-full px-2 pt-1.5 pb-[max(0.375rem,env(safe-area-inset-bottom))] sm:p-4 bg-slate-50/95 dark:bg-slate-950/95 backdrop-blur-md border-t border-slate-200/80 dark:border-slate-800/80 z-20">
+      <div className="max-w-6xl mx-auto flex items-center gap-2 sm:gap-4 h-12 sm:h-18">
         {/* Main "Rondje Klaar" Primary Action Button */}
         <button
           type="button"

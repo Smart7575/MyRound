@@ -9,7 +9,7 @@ const HISTORY_KEY = 'rondjeteller_history_v1';
 const SETTINGS_KEY = 'rondjeteller_settings_v1';
 
 export const DEFAULT_SETTINGS: AppSettings = {
-  language: 'nl',
+  language: 'en',
   darkMode: false,
   tileSize: 'normal',
   hapticFeedback: true,
@@ -17,13 +17,24 @@ export const DEFAULT_SETTINGS: AppSettings = {
   groupMembers: ['Stefan', 'Lisa', 'Tim', 'Sophie'],
 };
 
-export function loadStoredDrinks(language: Language = 'nl'): Drink[] {
+export function loadStoredDrinks(language: Language = 'en'): Drink[] {
   try {
     const raw = localStorage.getItem(DRINKS_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed) && parsed.length > 0) {
-        return sortDrinks(translateDrinkList(parsed, language));
+        let drinksList: Drink[] = parsed;
+        // If stored drinks list is from previous 9-drink version, upgrade to 12 drinks
+        if (drinksList.length < 12 || !drinksList.some((d) => d.id === 'incidental')) {
+          const defaultList = getDefaultDrinks(language);
+          const existingIds = new Set(drinksList.map((d) => d.id));
+          const missingDefaults = defaultList.filter((d) => !existingIds.has(d.id));
+          drinksList = [...drinksList, ...missingDefaults].map((d, index) => ({
+            ...d,
+            position: index,
+          }));
+        }
+        return sortDrinks(translateDrinkList(drinksList, language));
       }
     }
   } catch {

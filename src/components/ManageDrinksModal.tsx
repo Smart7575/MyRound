@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Drink, Language } from '../types';
-import { PRESET_COLORS, POPULAR_EMOJIS } from '../data/defaultDrinks';
+import { PRESET_COLORS, POPULAR_EMOJIS, STANDARD_DRINK_TRANSLATIONS } from '../data/defaultDrinks';
 import { translations } from '../i18n';
 import {
   X,
@@ -196,7 +196,7 @@ export const ManageDrinksModal: React.FC<ManageDrinksModalProps> = ({
                 >
                   <span className="text-3xl leading-none select-none">{emoji}</span>
                   <span className="mt-1 font-black text-xs text-slate-900 text-center leading-tight truncate max-w-full px-1">
-                    {name.trim() || 'Voorbeeld'}
+                    {name.trim() || (language === 'en' ? 'Preview' : 'Voorbeeld')}
                   </span>
                   {hasLightVariant && (
                     <div className="absolute top-1 right-1 px-1 py-0.5 rounded bg-sky-900/80 text-[8px] font-black text-white uppercase tracking-wider">
@@ -206,12 +206,16 @@ export const ManageDrinksModal: React.FC<ManageDrinksModalProps> = ({
                 </div>
                 <div className="text-center sm:text-left space-y-1">
                   <span className="text-xs font-black uppercase tracking-wider text-slate-500">
-                    Live voorvertoning tegel
+                    {language === 'en' ? 'Live tile preview' : 'Live voorvertoning tegel'}
                   </span>
                   <p className="text-xs text-slate-600 dark:text-slate-400">
                     {hasLightVariant
-                      ? '✨ Deze tegel toont op het hoofdscherm aparte knoppen voor Normaal en Light.'
-                      : 'Deze tegel heeft 1 teller voor de normale variant.'}
+                      ? (language === 'en'
+                          ? '✨ This tile shows separate buttons for Regular and Light on the main screen.'
+                          : '✨ Deze tegel toont op het hoofdscherm aparte knoppen voor Normaal en Light.')
+                      : (language === 'en'
+                          ? 'This tile has 1 counter for the regular drink.'
+                          : 'Deze tegel heeft 1 teller voor de normale variant.')}
                   </p>
                 </div>
               </div>
@@ -228,7 +232,7 @@ export const ManageDrinksModal: React.FC<ManageDrinksModalProps> = ({
                       required
                       value={name}
                       onChange={(e) => setName(e.target.value)}
-                      placeholder="bijv. Cola of Radler"
+                      placeholder={language === 'en' ? 'e.g. Cola or Radler' : 'bijv. Cola of Radler'}
                       className="flex-1 px-4 py-2.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 font-semibold text-sm focus:ring-2 focus:ring-orange-500"
                     />
                     <div className="w-12 h-11 rounded-2xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 flex items-center justify-center text-2xl shadow-xs">
@@ -329,7 +333,7 @@ export const ManageDrinksModal: React.FC<ManageDrinksModalProps> = ({
                       </span>
                       {hasLightVariant && (
                         <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-sky-200 dark:bg-sky-900 text-sky-800 dark:text-sky-200">
-                          Actief
+                          {language === 'en' ? 'Active' : 'Actief'}
                         </span>
                       )}
                     </div>
@@ -366,7 +370,7 @@ export const ManageDrinksModal: React.FC<ManageDrinksModalProps> = ({
                   {Array.from({ length: Math.max(drinks.length, 12) }, (_, i) => (
                     <option key={i} value={i}>
                       {(t.gridSlotNumber || 'Vakje #{pos}').replace('{pos}', (i + 1).toString())}
-                      {i === 0 ? ' (Eerste tegel linksboven)' : ''}
+                      {i === 0 ? (language === 'en' ? ' (First tile top-left)' : ' (Eerste tegel linksboven)') : ''}
                     </option>
                   ))}
                 </select>
@@ -384,7 +388,7 @@ export const ManageDrinksModal: React.FC<ManageDrinksModalProps> = ({
                       {t.pinDrink}
                     </span>
                     <span className="text-[11px] text-slate-400">
-                      Vaste favoriet
+                      {language === 'en' ? 'Pinned favorite' : 'Vaste favoriet'}
                     </span>
                   </div>
                 </div>
@@ -431,11 +435,18 @@ export const ManageDrinksModal: React.FC<ManageDrinksModalProps> = ({
               {/* Current Drinks List sorted by Position */}
               <div className="space-y-2.5">
                 <h4 className="text-xs font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 px-1">
-                  {drinks.length} {t.drinksTitle} (tik op potloodje om te bewerken)
+                  {drinks.length} {t.drinksTitle} {language === 'en' ? '(tap pencil to edit)' : '(tik op potloodje om te bewerken)'}
                 </h4>
 
                 {drinks.map((drink, index) => {
-                  const isBeer = drink.id === 'beer-pils' || drink.position === 0;
+                  const isBeer = drink.id === 'beer-pils' || drink.id === 'bier' || drink.position === 0;
+                  const isIncidental = drink.id === 'incidental';
+                  const standardTrans = STANDARD_DRINK_TRANSLATIONS[drink.id];
+                  const displayName = standardTrans
+                    ? (language === 'en'
+                        ? (drink.name === standardTrans.nl || drink.name.toLowerCase() === standardTrans.nl.toLowerCase() ? standardTrans.en : drink.name)
+                        : (drink.name === standardTrans.en || drink.name.toLowerCase() === standardTrans.en.toLowerCase() ? standardTrans.nl : drink.name))
+                    : drink.name;
 
                   return (
                     <div
@@ -459,7 +470,7 @@ export const ManageDrinksModal: React.FC<ManageDrinksModalProps> = ({
                         <div className="min-w-0">
                           <div className="flex items-center gap-1.5 flex-wrap">
                             <h4 className="font-black text-sm leading-tight text-slate-900 dark:text-slate-100 truncate">
-                              {drink.name}
+                              {displayName}
                             </h4>
                             {drink.isPinned && (
                               <span className="p-1 rounded-full bg-orange-100 dark:bg-orange-950/60 text-orange-700 dark:text-orange-300 text-[10px]">
@@ -474,8 +485,8 @@ export const ManageDrinksModal: React.FC<ManageDrinksModalProps> = ({
                             )}
                           </div>
                           <p className="text-xs font-medium text-slate-500 dark:text-slate-400 truncate">
-                            Plek #{drink.position + 1}
-                            {isBeer ? ' (Vast linksboven)' : ''}
+                            {language === 'en' ? `Tile #${drink.position + 1}` : `Plek #${drink.position + 1}`}
+                            {isBeer ? (language === 'en' ? ' (Fixed top-left)' : ' (Vast linksboven)') : ''}
                           </p>
                         </div>
                       </div>
@@ -509,7 +520,7 @@ export const ManageDrinksModal: React.FC<ManageDrinksModalProps> = ({
                           value={drink.position}
                           onChange={(e) => onSetGridPosition(drink.id, Number(e.target.value))}
                           className="text-xs font-bold py-1.5 px-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 cursor-pointer"
-                          title="Directe rasterpositie"
+                          title={language === 'en' ? 'Direct grid position' : 'Directe rasterpositie'}
                         >
                           {drinks.map((_, i) => (
                             <option key={i} value={i}>
@@ -530,36 +541,38 @@ export const ManageDrinksModal: React.FC<ManageDrinksModalProps> = ({
                           <span className="hidden sm:inline">{t.edit}</span>
                         </button>
 
-                        {/* Delete Button with inline confirmation */}
-                        {deleteConfirmId === drink.id ? (
-                          <div className="flex items-center gap-1">
+                        {/* Delete Button with inline confirmation (not shown for incidental tile) */}
+                        {!isIncidental && (
+                          deleteConfirmId === drink.id ? (
+                            <div className="flex items-center gap-1">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  onDeleteDrink(drink.id);
+                                  setDeleteConfirmId(null);
+                                }}
+                                className="px-2.5 py-1 text-xs font-bold bg-red-600 text-white rounded-lg cursor-pointer"
+                              >
+                                {t.deleteDrink}
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setDeleteConfirmId(null)}
+                                className="px-1.5 py-1 text-xs text-slate-500 hover:text-slate-800"
+                              >
+                                ✕
+                              </button>
+                            </div>
+                          ) : (
                             <button
                               type="button"
-                              onClick={() => {
-                                onDeleteDrink(drink.id);
-                                setDeleteConfirmId(null);
-                              }}
-                              className="px-2.5 py-1 text-xs font-bold bg-red-600 text-white rounded-lg cursor-pointer"
+                              onClick={() => setDeleteConfirmId(drink.id)}
+                              className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-xl cursor-pointer"
+                              title={t.deleteDrink}
                             >
-                              {t.deleteDrink}
+                              <Trash2 size={15} />
                             </button>
-                            <button
-                              type="button"
-                              onClick={() => setDeleteConfirmId(null)}
-                              className="px-1.5 py-1 text-xs text-slate-500 hover:text-slate-800"
-                            >
-                              ✕
-                            </button>
-                          </div>
-                        ) : (
-                          <button
-                            type="button"
-                            onClick={() => setDeleteConfirmId(drink.id)}
-                            className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-xl cursor-pointer"
-                            title={t.deleteDrink}
-                          >
-                            <Trash2 size={15} />
-                          </button>
+                          )
                         )}
                       </div>
                     </div>

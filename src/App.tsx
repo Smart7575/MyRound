@@ -22,7 +22,7 @@ import { sortDrinks, moveDrinkToPosition, reindexPositions, swapDrinks } from '.
 import { translations } from './i18n';
 import { Navbar } from './components/Navbar';
 import { DrinkGrid } from './components/DrinkGrid';
-import { IncidentalDrinksBar } from './components/IncidentalDrinksBar';
+import { IncidentalDrinkModal } from './components/IncidentalDrinkModal';
 import { BottomBar } from './components/BottomBar';
 import { RoundSummaryModal } from './components/RoundSummaryModal';
 import { ManageDrinksModal } from './components/ManageDrinksModal';
@@ -50,6 +50,7 @@ export default function App() {
   const [isSummaryOpen, setIsSummaryOpen] = useState(false);
   const [isManageOpen, setIsManageOpen] = useState(false);
   const [isAddDrinkOpen, setIsAddDrinkOpen] = useState(false);
+  const [isIncidentalOpen, setIsIncidentalOpen] = useState(false);
   const [drinkToDelete, setDrinkToDelete] = useState<Drink | null>(null);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -92,12 +93,30 @@ export default function App() {
     saveStoredSettings(settings);
   }, [settings]);
 
+  // Total incidental glasses
+  const totalIncidentalGlasses = useMemo(() => {
+    return incidentalDrinks.reduce((acc: number, item) => acc + (item.count || 0), 0);
+  }, [incidentalDrinks]);
+
   // Derived Totals (Grid drinks + Incidental drinks)
   const totalGlasses = useMemo(() => {
-    const gridTotal = Object.values(counts).reduce((acc: number, count: number) => acc + (count || 0), 0);
-    const incidentalTotal = incidentalDrinks.reduce((acc: number, item) => acc + (item.count || 0), 0);
-    return gridTotal + incidentalTotal;
-  }, [counts, incidentalDrinks]);
+    const gridTotal = (Object.entries(counts) as [string, number][]).reduce(
+      (acc: number, [key, count]) => {
+        if (key === 'incidental') return acc;
+        return acc + (Number(count) || 0);
+      },
+      0
+    );
+    return gridTotal + totalIncidentalGlasses;
+  }, [counts, totalIncidentalGlasses]);
+
+  // Combined counts for grid display (so 12th incidental tile shows total badge)
+  const displayCounts = useMemo(() => {
+    return {
+      ...counts,
+      incidental: totalIncidentalGlasses,
+    };
+  }, [counts, totalIncidentalGlasses]);
 
   // Incidental drink handlers
   const handleAddIncidental = useCallback((name: string, count: number) => {
@@ -244,6 +263,7 @@ export default function App() {
   const handleResetRound = useCallback(() => {
     setCounts({});
     setIncidentalDrinks([]);
+    setIsIncidentalOpen(false);
     setIsResetConfirmOpen(false);
   }, []);
 
@@ -259,6 +279,7 @@ export default function App() {
       setHistory((prev) => [...prev, newRound]);
       setCounts({});
       setIncidentalDrinks([]);
+      setIsIncidentalOpen(false);
     },
     []
   );
@@ -375,10 +396,10 @@ export default function App() {
       />
 
       {/* Main Content Area: Responsive No-Scroll Phone View */}
-      <main className="flex-1 min-h-0 max-w-6xl w-full mx-auto px-2 sm:px-6 py-1 sm:py-3 flex flex-col overflow-hidden sm:overflow-auto">
+      <main className="flex-1 min-h-0 max-w-lg sm:max-w-2xl lg:max-w-3xl w-full mx-auto px-2 sm:px-4 py-1 flex flex-col overflow-hidden">
         {/* Quick Turn Alert if group tracking active */}
         {lastPayer && history.length > 0 && (
-          <div className="mb-1 sm:mb-3 px-3 py-1.5 rounded-xl bg-orange-500/10 dark:bg-orange-500/15 border border-orange-500/20 text-[11px] sm:text-xs font-semibold text-orange-900 dark:text-orange-300 flex items-center justify-between shrink-0">
+          <div className="mb-1 px-3 py-1 rounded-xl bg-orange-500/10 dark:bg-orange-500/15 border border-orange-500/20 text-[11px] font-semibold text-orange-900 dark:text-orange-300 flex items-center justify-between shrink-0">
             <span className="flex items-center gap-1.5 truncate">
               <span>🍻</span>
               <span className="truncate">
@@ -395,11 +416,11 @@ export default function App() {
           </div>
         )}
 
-        {/* Responsive Drink Grid */}
-        <div className="flex-1 min-h-0 flex flex-col">
+        {/* Responsive Drink Grid (fills 100% vertical space without scroll) */}
+        <div className="flex-1 min-h-0 flex flex-col h-full overflow-hidden">
           <DrinkGrid
             drinks={drinks}
-            counts={counts}
+            counts={displayCounts}
             searchQuery={showSearch ? searchQuery : ''}
             setSearchQuery={setSearchQuery}
             showSearch={showSearch}
@@ -408,19 +429,9 @@ export default function App() {
             language={settings.language}
             onIncrement={handleIncrement}
             onDecrement={handleDecrement}
+            onOpenIncidentalModal={() => setIsIncidentalOpen(true)}
             onSwapDrinks={handleSwapDrinks}
             onPromptDelete={(drink) => setDrinkToDelete(drink)}
-          />
-
-          {/* Incidental drinks under the main drinks grid */}
-          <IncidentalDrinksBar
-            incidentalDrinks={incidentalDrinks}
-            language={settings.language}
-            hapticsEnabled={settings.hapticFeedback}
-            onAddIncidental={handleAddIncidental}
-            onIncrementIncidental={handleIncrementIncidental}
-            onDecrementIncidental={handleDecrementIncidental}
-            onRemoveIncidental={handleRemoveIncidental}
           />
         </div>
       </main>
@@ -431,6 +442,19 @@ export default function App() {
         language={settings.language}
         onOpenSummary={() => setIsSummaryOpen(true)}
         onPromptReset={() => setIsResetConfirmOpen(true)}
+      />
+
+      {/* Incidental Drink Popup Modal (opened exclusively via the 12th drink tile) */}
+      <IncidentalDrinkModal
+        isOpen={isIncidentalOpen}
+        onClose={() => setIsIncidentalOpen(false)}
+        incidentalDrinks={incidentalDrinks}
+        language={settings.language}
+        hapticsEnabled={settings.hapticFeedback}
+        onAddIncidental={handleAddIncidental}
+        onIncrementIncidental={handleIncrementIncidental}
+        onDecrementIncidental={handleDecrementIncidental}
+        onRemoveIncidental={handleRemoveIncidental}
       />
 
       {/* Drink Delete Confirmation Dialog */}
@@ -512,7 +536,7 @@ export default function App() {
       <RoundSummaryModal
         isOpen={isSummaryOpen}
         onClose={() => setIsSummaryOpen(false)}
-        drinks={drinks}
+        drinks={drinks.filter((d) => d.id !== 'incidental')}
         counts={counts}
         incidentalDrinks={incidentalDrinks}
         onIncrement={handleIncrement}

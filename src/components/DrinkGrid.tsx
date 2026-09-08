@@ -15,6 +15,7 @@ interface DrinkGridProps {
   language: Language;
   onIncrement: (drink: Drink, isLight?: boolean) => void;
   onDecrement: (drink: Drink, isLight?: boolean) => void;
+  onOpenIncidentalModal?: () => void;
   onOpenAddDrink?: () => void;
   onSwapDrinks: (idA: string, idB: string) => void;
   onPromptDelete: (drink: Drink) => void;
@@ -31,6 +32,7 @@ export const DrinkGrid: React.FC<DrinkGridProps> = ({
   language,
   onIncrement,
   onDecrement,
+  onOpenIncidentalModal,
   onOpenAddDrink,
   onSwapDrinks,
   onPromptDelete,
@@ -118,17 +120,11 @@ export const DrinkGrid: React.FC<DrinkGridProps> = ({
         </div>
       )}
 
-      {/* Grid: 3 columns, perfectly square tiles (aspect-square) */}
+      {/* Grid: 3 columns x 4 rows that dynamically fit the viewport height without scrolling */}
       {filteredDrinks.length > 0 ? (
         <div
           id="drinks-grid-container"
-          className={`grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 w-full justify-items-stretch transition-all duration-200 ${
-            tileSize === 'compact'
-              ? 'gap-1.5 sm:gap-2.5 max-w-4xl mx-auto'
-              : tileSize === 'large'
-              ? 'gap-2.5 sm:gap-4 max-w-6xl mx-auto'
-              : 'gap-2 sm:gap-3.5 max-w-5xl mx-auto'
-          }`}
+          className="grid grid-cols-3 grid-rows-4 gap-1.5 sm:gap-2 w-full h-full min-h-0 flex-1 max-w-lg sm:max-w-2xl lg:max-w-3xl mx-auto justify-items-stretch"
         >
           {filteredDrinks.map((drink) => (
             <DrinkTile
@@ -141,8 +137,10 @@ export const DrinkGrid: React.FC<DrinkGridProps> = ({
               hapticsEnabled={hapticsEnabled}
               isSelectedForReorder={reorderingDrink?.id === drink.id}
               isReorderModeActive={reorderingDrink !== null}
+              isIncidentalTile={drink.id === 'incidental'}
               onIncrement={onIncrement}
               onDecrement={onDecrement}
+              onOpenIncidentalModal={onOpenIncidentalModal}
               onStartReorder={handleStartReorder}
               onSelectReorderTarget={handleSelectReorderTarget}
               onPromptDelete={onPromptDelete}

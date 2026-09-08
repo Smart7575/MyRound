@@ -97,6 +97,30 @@ export const DEFAULT_DRINKS_NL: Drink[] = [
     isPinned: false,
     position: 8,
   },
+  {
+    id: 'radler',
+    name: 'Radler',
+    emoji: '🍋',
+    color: '#84cc16',
+    isPinned: false,
+    position: 9,
+  },
+  {
+    id: 'witte-wijn',
+    name: 'Witte wijn',
+    emoji: '🥂',
+    color: '#facc15',
+    isPinned: false,
+    position: 10,
+  },
+  {
+    id: 'incidental',
+    name: 'Incidenteel',
+    emoji: '✨',
+    color: '#e2e8f0',
+    isPinned: true,
+    position: 11,
+  },
 ];
 
 export const DEFAULT_DRINKS_EN: Drink[] = [
@@ -173,24 +197,52 @@ export const DEFAULT_DRINKS_EN: Drink[] = [
     isPinned: false,
     position: 8,
   },
+  {
+    id: 'radler',
+    name: 'Radler',
+    emoji: '🍋',
+    color: '#84cc16',
+    isPinned: false,
+    position: 9,
+  },
+  {
+    id: 'witte-wijn',
+    name: 'White wine',
+    emoji: '🥂',
+    color: '#facc15',
+    isPinned: false,
+    position: 10,
+  },
+  {
+    id: 'incidental',
+    name: 'Incidental',
+    emoji: '✨',
+    color: '#e2e8f0',
+    isPinned: true,
+    position: 11,
+  },
 ];
 
-export const DEFAULT_DRINKS: Drink[] = DEFAULT_DRINKS_NL;
+export const DEFAULT_DRINKS: Drink[] = DEFAULT_DRINKS_EN;
 
 export const STANDARD_DRINK_TRANSLATIONS: Record<string, { nl: string; en: string }> = {
   bier: { nl: 'Bier', en: 'Beer' },
+  'beer-pils': { nl: 'Bier', en: 'Beer' },
   cola: { nl: 'Cola', en: 'Cola' },
   fanta: { nl: 'Fanta', en: 'Fanta' },
   'spa-rood': { nl: 'Spa rood', en: 'Spa red' },
   'green-tea': { nl: 'Green tea', en: 'Green Tea' },
   wijn: { nl: 'Wijn', en: 'Wine' },
   koffie: { nl: 'Koffie', en: 'Coffee' },
-  cappuccino: { nl: 'Cappuccino', en: 'Cappucino' },
+  cappuccino: { nl: 'Cappuccino', en: 'Cappuccino' },
   thee: { nl: 'Thee', en: 'Tea' },
+  radler: { nl: 'Radler', en: 'Radler' },
+  'witte-wijn': { nl: 'Witte wijn', en: 'White wine' },
+  incidental: { nl: 'Incidenteel', en: 'Incidental' },
 };
 
-export function getDefaultDrinks(language: Language = 'nl'): Drink[] {
-  return language === 'en' ? DEFAULT_DRINKS_EN : DEFAULT_DRINKS_NL;
+export function getDefaultDrinks(language: Language = 'en'): Drink[] {
+  return language === 'nl' ? DEFAULT_DRINKS_NL : DEFAULT_DRINKS_EN;
 }
 
 export function translateDrinkList(drinks: Drink[], targetLang: Language): Drink[] {

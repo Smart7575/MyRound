@@ -14,8 +14,10 @@ interface DrinkTileProps {
   hapticsEnabled: boolean;
   isSelectedForReorder: boolean;
   isReorderModeActive: boolean;
+  isIncidentalTile?: boolean;
   onIncrement: (drink: Drink, isLight?: boolean) => void;
   onDecrement: (drink: Drink, isLight?: boolean) => void;
+  onOpenIncidentalModal?: () => void;
   onStartReorder: (drink: Drink) => void;
   onSelectReorderTarget: (drink: Drink) => void;
   onPromptDelete: (drink: Drink) => void;
@@ -30,8 +32,10 @@ export const DrinkTile: React.FC<DrinkTileProps> = ({
   hapticsEnabled,
   isSelectedForReorder,
   isReorderModeActive,
+  isIncidentalTile = false,
   onIncrement,
   onDecrement,
+  onOpenIncidentalModal,
   onStartReorder,
   onSelectReorderTarget,
   onPromptDelete,
@@ -60,6 +64,13 @@ export const DrinkTile: React.FC<DrinkTileProps> = ({
     if (isReorderModeActive) {
       onSelectReorderTarget(drink);
       triggerHaptic(hapticsEnabled, 30);
+      return;
+    }
+
+    // Incidental tile opens the registration popup
+    if (drink.id === 'incidental' || isIncidentalTile) {
+      triggerHaptic(hapticsEnabled, 20);
+      onOpenIncidentalModal?.();
       return;
     }
 
@@ -163,10 +174,10 @@ export const DrinkTile: React.FC<DrinkTileProps> = ({
       }}
       style={{
         backgroundColor: drink.color,
-        color: textColor,
+        color: (drink.id === 'incidental' || isIncidentalTile) ? '#000000' : textColor,
         borderColor: darkerBorderColor,
       }}
-      className={`relative group select-none cursor-pointer rounded-2xl sm:rounded-[2rem] shadow-md flex flex-col justify-between border-b-4 sm:border-b-8 transition-all duration-100 overflow-hidden aspect-square w-full ${
+      className={`relative group select-none cursor-pointer rounded-2xl sm:rounded-[2rem] shadow-md flex flex-col justify-between border-b-4 sm:border-b-8 transition-all duration-100 overflow-hidden w-full h-full min-h-0 ${
         isCompact ? 'p-1 sm:p-2' : isLarge ? 'p-2 sm:p-3.5' : 'p-1 sm:p-2.5'
       } ${
         isSelectedForReorder
@@ -183,17 +194,24 @@ export const DrinkTile: React.FC<DrinkTileProps> = ({
     >
       {/* Top-Left: Discreet Delete Icon + Position Indicator */}
       <div className="absolute top-1 left-1 sm:top-2 sm:left-2 flex items-center gap-0.5 z-20">
-        <button
-          type="button"
-          id={`delete-drink-${drink.id}`}
-          onClick={handleDeleteClick}
-          title={language === 'en' ? `Delete ${drink.name}` : `Drankje ${drink.name} verwijderen`}
-          className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-black/25 hover:bg-red-600 active:scale-90 text-white/80 hover:text-white flex items-center justify-center transition-all cursor-pointer shadow-xs backdrop-blur-xs"
-          aria-label={language === 'en' ? `Delete ${drink.name}` : `Verwijder ${drink.name}`}
+        {!isIncidentalTile && drink.id !== 'incidental' && (
+          <button
+            type="button"
+            id={`delete-drink-${drink.id}`}
+            onClick={handleDeleteClick}
+            title={language === 'en' ? `Delete ${drink.name}` : `Drankje ${drink.name} verwijderen`}
+            className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-black/25 hover:bg-red-600 active:scale-90 text-white/80 hover:text-white flex items-center justify-center transition-all cursor-pointer shadow-xs backdrop-blur-xs"
+            aria-label={language === 'en' ? `Delete ${drink.name}` : `Verwijder ${drink.name}`}
+          >
+            <Trash2 size={10} className="sm:w-3 sm:h-3" />
+          </button>
+        )}
+        <span
+          style={(drink.id === 'incidental' || isIncidentalTile) ? { color: '#000000', opacity: 0.85 } : undefined}
+          className={`text-[9px] sm:text-[10px] font-mono font-black pointer-events-none drop-shadow-xs ml-0.5 ${
+            (drink.id === 'incidental' || isIncidentalTile) ? '!text-black' : 'opacity-60'
+          }`}
         >
-          <Trash2 size={10} className="sm:w-3 sm:h-3" />
-        </button>
-        <span className="text-[9px] sm:text-[10px] font-mono font-black opacity-60 pointer-events-none drop-shadow-xs ml-0.5">
           #{drink.position + 1}
         </span>
       </div>
@@ -390,17 +408,32 @@ export const DrinkTile: React.FC<DrinkTileProps> = ({
             <div className={`leading-none drop-shadow-xs select-none transition-transform group-hover:scale-105 ${
               isCompact ? 'text-xl sm:text-4xl' : isLarge ? 'text-3xl sm:text-6xl' : 'text-2xl sm:text-5xl'
             }`}>
-              {drink.emoji || '🍺'}
+              {drink.id === 'incidental' || isIncidentalTile ? '✨' : (drink.emoji || '🍺')}
             </div>
-            <div className={`font-black uppercase tracking-tight sm:tracking-wider drop-shadow-xs truncate max-w-full ${
-              isCompact ? 'text-[9px] sm:text-sm mt-0.5 sm:mt-1' : isLarge ? 'text-xs sm:text-lg mt-1.5 sm:mt-2.5' : 'text-[10px] sm:text-base mt-1 sm:mt-2'
-            }`}>
+            <div
+              style={(drink.id === 'incidental' || isIncidentalTile) ? { color: '#000000' } : undefined}
+              className={`font-black uppercase tracking-tight sm:tracking-wider drop-shadow-xs truncate max-w-full ${
+                (drink.id === 'incidental' || isIncidentalTile) ? '!text-black' : ''
+              } ${
+                isCompact ? 'text-[9px] sm:text-sm mt-0.5 sm:mt-1' : isLarge ? 'text-xs sm:text-lg mt-1.5 sm:mt-2.5' : 'text-[10px] sm:text-base mt-1 sm:mt-2'
+              }`}
+            >
               {drink.name}
             </div>
+            {(drink.id === 'incidental' || isIncidentalTile) && (
+              <span
+                style={{ color: '#000000' }}
+                className="text-[9px] sm:text-xs font-black !text-black mt-0.5 opacity-100"
+              >
+                {count > 0
+                  ? `${count} ${count === 1 ? (language === 'en' ? 'drink' : 'drankje') : (language === 'en' ? 'drinks' : 'drankjes')}`
+                  : (language === 'en' ? '+ Register' : '+ Noteren')}
+              </span>
+            )}
           </div>
 
           {/* Bottom Left: Tactile Chunky Decrement Button ("-") */}
-          {count > 0 && !isReorderModeActive && (
+          {count > 0 && !isReorderModeActive && drink.id !== 'incidental' && !isIncidentalTile && (
             <button
               type="button"
               id={`drink-minus-${drink.id}`}

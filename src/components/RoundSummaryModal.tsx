@@ -8,7 +8,6 @@ import {
   Trash2,
   Copy,
   Check,
-  User,
   Sparkles,
 } from 'lucide-react';
 
@@ -26,8 +25,8 @@ interface RoundSummaryModalProps {
   onResetRound: () => void;
   onSaveRound: (round: Omit<SavedRound, 'id' | 'timestamp'>) => void;
   language: Language;
-  groupMembers: string[];
-  onAddMember: (name: string) => void;
+  groupMembers?: string[];
+  onAddMember?: (name: string) => void;
   lastPayer?: string;
 }
 
@@ -42,19 +41,12 @@ export const RoundSummaryModal: React.FC<RoundSummaryModalProps> = ({
   onIncrementIncidental,
   onDecrementIncidental,
   onRemoveIncidental,
-  onResetRound,
   onSaveRound,
   language,
-  groupMembers,
-  onAddMember,
   lastPayer,
 }) => {
   const t = translations[language];
   const [copied, setCopied] = useState(false);
-  const [selectedPayer, setSelectedPayer] = useState<string>(lastPayer || '');
-  const [newMemberName, setNewMemberName] = useState('');
-  const [showAddMember, setShowAddMember] = useState(false);
-  const [showResetConfirm, setShowResetConfirm] = useState(false);
 
   if (!isOpen) return null;
 
@@ -110,8 +102,8 @@ export const RoundSummaryModal: React.FC<RoundSummaryModalProps> = ({
     const combined = [...drinkItemsList, ...incidentalItemsList].join(', ');
 
     let msg = `🍻 Rondje: ${combined} — Totaal ${totalGlasses} ${t.totalDrinks}`;
-    if (selectedPayer) {
-      msg += ` [${t.treatedBy}: ${selectedPayer}]`;
+    if (lastPayer) {
+      msg += ` [${t.treatedBy}: ${lastPayer}]`;
     }
     return msg;
   };
@@ -162,19 +154,9 @@ export const RoundSummaryModal: React.FC<RoundSummaryModalProps> = ({
       items: roundItems,
       totalCount: totalGlasses,
       totalPrice: 0,
-      paidBy: selectedPayer || undefined,
+      paidBy: lastPayer || undefined,
     });
     onClose();
-  };
-
-  const handleAddNewMember = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (newMemberName.trim()) {
-      onAddMember(newMemberName.trim());
-      setSelectedPayer(newMemberName.trim());
-      setNewMemberName('');
-      setShowAddMember(false);
-    }
   };
 
   const hasAnyItems = activeItems.length > 0 || activeIncidental.length > 0;
@@ -336,57 +318,6 @@ export const RoundSummaryModal: React.FC<RoundSummaryModalProps> = ({
                   <div className="text-2xl font-black text-orange-950 dark:text-orange-100">
                     {totalGlasses} {t.totalDrinks}
                   </div>
-                </div>
-              </div>
-
-              {/* Who paid / Group tracker */}
-              <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800">
-                <label className="flex items-center gap-1.5 text-xs font-black uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-2.5">
-                  <User size={14} />
-                  {t.paidBy}
-                </label>
-                <div className="flex flex-wrap gap-2">
-                  {groupMembers.map((member) => (
-                    <button
-                      key={member}
-                      type="button"
-                      onClick={() => setSelectedPayer(selectedPayer === member ? '' : member)}
-                      className={`px-3.5 py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
-                        selectedPayer === member
-                          ? 'bg-orange-500 text-white border-orange-500 shadow-xs'
-                          : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-slate-400'
-                      }`}
-                    >
-                      {member}
-                    </button>
-                  ))}
-
-                  {!showAddMember ? (
-                    <button
-                      type="button"
-                      onClick={() => setShowAddMember(true)}
-                      className="px-3 py-1.5 rounded-xl text-xs font-bold text-orange-600 dark:text-orange-400 border border-dashed border-orange-300 dark:border-orange-700 hover:bg-orange-50 dark:hover:bg-orange-950/20 cursor-pointer"
-                    >
-                      ＋ {t.addNewPerson}
-                    </button>
-                  ) : (
-                    <form onSubmit={handleAddNewMember} className="flex items-center gap-1.5 w-full mt-2">
-                      <input
-                        type="text"
-                        value={newMemberName}
-                        onChange={(e) => setNewMemberName(e.target.value)}
-                        placeholder={t.personNamePlaceholder}
-                        className="flex-1 px-3 py-1.5 rounded-xl text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 focus:outline-hidden focus:ring-2 focus:ring-orange-500"
-                      />
-                      <button
-                        type="submit"
-                        disabled={!newMemberName.trim()}
-                        className="px-3 py-1.5 rounded-xl text-xs font-bold bg-orange-500 text-white hover:bg-orange-600 disabled:opacity-50 cursor-pointer"
-                      >
-                        {t.save}
-                      </button>
-                    </form>
-                  )}
                 </div>
               </div>
             </>

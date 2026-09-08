@@ -128,7 +128,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                       : (settings.language === 'nl' ? 'Lichte modus' : 'Light mode')}
                   </span>
                   <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200">
-                    {settings.darkMode ? 'Donker' : 'Licht'}
+                    {settings.darkMode
+                      ? (settings.language === 'en' ? 'Dark' : 'Donker')
+                      : (settings.language === 'en' ? 'Light' : 'Licht')}
                   </span>
                 </div>
                 <span className="text-xs font-medium text-slate-500 dark:text-slate-400 block mt-0.5">
